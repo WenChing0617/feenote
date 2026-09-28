@@ -1073,7 +1073,7 @@ class Store(object):
         w.writerow(['导出时间', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
         w.writerow([])
         w.writerow(['日期', '充值人', '金额(元)', '支付方式', '备注'])
-        for r in sorted(self.records, key=lambda x: (x['date'], x['createdAt'])):
+        for r in self._sorted_records():
             w.writerow([r['date'], r['member'],
                         '%.2f' % r['amount'], r['method'], r['note']])
         s = self.stats()
@@ -1114,7 +1114,14 @@ class Store(object):
 
     # ---------- 导出：纯文本 / Excel ----------
     def _sorted_records(self):
-        return sorted(self.records, key=lambda x: (x['date'], x['createdAt']))
+        """明细排序：**最新的在最上面**。
+
+        导出成 TXT / CSV 之后多半是发到群里或给别人看的，
+        第一眼应该看到最近交的那几笔，而不是开学第一天那笔。
+        """
+        return sorted(self.records,
+                      key=lambda x: (x['date'], x['createdAt']),
+                      reverse=True)
 
     def _shown_rows(self, s=None):
         """汇总表里要展示的人（有真充值或期初的都算）"""

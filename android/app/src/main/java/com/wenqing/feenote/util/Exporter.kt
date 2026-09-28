@@ -1,5 +1,6 @@
 package com.wenqing.feenote.util
 
+import com.wenqing.feenote.data.Record
 import com.wenqing.feenote.data.Repository
 
 /**
@@ -7,6 +8,22 @@ import com.wenqing.feenote.data.Repository
  * 纯字符串生成，不碰文件系统；写文件由界面层通过系统文件选择器完成。
  */
 object Exporter {
+
+    /**
+     * 明细的排列顺序：**最新的在最上面**。
+     *
+     * 单独抽出来是为了能写单测 —— 这条规则很容易在某次重构里被顺手改回去，
+     * 而「顺序反了」这种问题肉眼扫代码是看不出来的。
+     *
+     * 同一天有多笔时按创建时间倒序（最后记的那笔排最上），
+     * 再相同就按 id 倒序，保证顺序是稳定的、不会每次导出都变。
+     */
+    fun newestFirst(records: List<Record>): List<Record> =
+        records.sortedWith(
+            compareByDescending<Record> { it.date }
+                .thenByDescending { it.createdAt }
+                .thenByDescending { it.id },
+        )
 
     /** 便于生成文件名，如 电费记账_302_20260928.txt */
     fun fileName(repo: Repository, ext: String): String {
@@ -61,7 +78,8 @@ object Exporter {
         sb.appendLine()
 
         sb.appendLine("========== 充值明细 ==========")
-        records.sortedBy { it.date }.forEach { r ->
+        // 最新的排最上面：分享出去 / 发到群里，第一眼想看到的是最近交的那笔
+        newestFirst(records).forEach { r ->
             val tail = buildString {
                 if (r.note.isNotBlank()) append("  ").append(r.note)
                 if (r.initial) append("  [期初]")
@@ -82,7 +100,8 @@ object Exporter {
         val orderMap = repo.members().associate { it.name to it.orderNo }
 
         sb.appendLine("日期,星期,成员,编号,金额,支付方式,备注,类型")
-        repo.records().sortedBy { it.date }.forEach { r ->
+        // 同 TXT：最新的在最上面，打开就是最近几笔
+        newestFirst(repo.records()).forEach { r ->
             sb.appendLine(
                 listOf(
                     r.date,

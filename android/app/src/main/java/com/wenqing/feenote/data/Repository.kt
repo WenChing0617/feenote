@@ -229,12 +229,12 @@ class Repository(private val helper: DbHelper) {
 
     fun trash(): List<Record> = queryRecords("deleted=1")
 
-    private fun queryRecords(where: String): List<Record> {
+    private fun queryRecords(where: String, args: Array<String>? = null): List<Record> {
         val list = ArrayList<Record>()
         db.rawQuery(
             "SELECT id, uid, date, member, amount, method, note, initial, created_at, deleted " +
                 "FROM records WHERE $where ORDER BY date DESC, created_at DESC, id DESC",
-            null,
+            args,
         ).use { c ->
             while (c.moveToNext()) {
                 list.add(
@@ -348,6 +348,21 @@ class Repository(private val helper: DbHelper) {
         }
         return 0.0
     }
+
+    /**
+     * 某位成员的全部充值记录（统计页点人看明细用）。
+     *
+     * 复用 [queryRecords] 的排序（date DESC, created_at DESC, id DESC），
+     * 所以返回的已经是「最新的在最上面」，界面直接渲染即可。
+     */
+    fun recordsOf(member: String): List<Record> =
+        queryRecords("deleted=0 AND member = ?", arrayOf(member))
+
+    /**
+     * 某位成员的累计情况；没记录时返回 null，由调用方决定怎么显示。
+     * 走和 [totals] 一样的口径，避免两处算出来对不上。
+     */
+    fun totalOf(member: String): MemberTotal? = totals().firstOrNull { it.member == member }
 
     /** 非期初的记录笔数 */
     fun realCount(): Int {
