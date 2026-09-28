@@ -28,6 +28,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+            「分享到微信 / QQ」用。
+
+            Android 7.0 起不允许把 file:// 直接塞进 Intent 给别的应用（会抛
+            FileUriExposedException），必须走 FileProvider 换成 content:// URI。
+            这个 Provider 不对外暴露（exported=false），只在自己应用的分享动作里
+            通过 FLAG_GRANT_READ_URI_PERMISSION 临时授权给接收方。
+            分享本身不需要任何额外权限。
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

@@ -12,8 +12,8 @@ android {
         applicationId = "com.wenqing.feenote"
         minSdk = 26
         targetSdk = 37
-        versionCode = 6
-        versionName = "1.5"
+        versionCode = 7
+        versionName = "1.6"
     }
 
     buildTypes {
@@ -33,6 +33,10 @@ android {
 
     buildFeatures {
         compose = true
+        // 设置页底部要显示版本号，用 BuildConfig.VERSION_NAME 读，
+        // 免得手写的字符串又跟 versionName 对不上（之前就写错过一次）。
+        // AGP 8 起这个开关默认关闭，必须显式打开。
+        buildConfig = true
     }
 
     testOptions {

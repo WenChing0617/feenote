@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.RestoreFromTrash
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -41,6 +42,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -57,6 +60,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.wenqing.feenote.BuildConfig
 import com.wenqing.feenote.data.Member
 import com.wenqing.feenote.data.Record
 import com.wenqing.feenote.data.Repository
@@ -64,6 +68,7 @@ import com.wenqing.feenote.ui.theme.memberColor
 import com.wenqing.feenote.util.Dates
 import com.wenqing.feenote.util.Exporter
 import com.wenqing.feenote.util.JsonCodec
+import com.wenqing.feenote.util.Sharer
 import com.wenqing.feenote.util.money2
 
 /** 设置页：房间号、成员管理、导出、回收站 */
@@ -89,6 +94,7 @@ fun SettingsScreen(
     var showSync by remember { mutableStateOf(false) }
     var showDup by remember { mutableStateOf(false) }
     var showOnboarding by remember { mutableStateOf(false) }
+    var showShare by remember { mutableStateOf(false) }
 
     // 撤销 / 恢复：每改一笔就记一个快照，这里读栈顶看还能撤什么
     val undoLabel = remember(dataVersion) { repo.undoLabel }
@@ -249,6 +255,13 @@ fun SettingsScreen(
         item { SectionTitle("导出") }
         item {
             SettingRow(
+                title = "分享给微信 / QQ",
+                subtitle = "把账本发到群里：直接弹系统分享面板，挑一个应用就发出去了",
+                onClick = { showShare = true },
+            )
+        }
+        item {
+            SettingRow(
                 title = "导出 TXT（文本报告）",
                 subtitle = "适合直接看或发群里",
                 onClick = {
@@ -313,9 +326,10 @@ fun SettingsScreen(
 
         item {
             Text(
-                text = "电费记账本 · Android 版 v1.2\n" +
+                text = "电费记账本 · Android 版 v${BuildConfig.VERSION_NAME}\n" +
                     "数据存在手机本地数据库，不经过任何服务器。\n" +
-                    "「电脑同步」只在同一个 WiFi 里直连你自己那台电脑，配上 4 位配对码才能读写。",
+                    "「电脑同步」只在同一个 WiFi 里直连你自己那台电脑，配上 4 位配对码才能读写。\n" +
+                    "「分享」由系统分享面板完成，文件不经过本应用之外的任何服务器。",
                 fontSize = 12.sp,
                 lineHeight = 18.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -377,6 +391,13 @@ fun SettingsScreen(
             repo = repo,
             onDismiss = { showDup = false },
             onChanged = onChanged,
+        )
+    }
+
+    if (showShare) {
+        ShareDialog(
+            repo = repo,
+            onDismiss = { showShare = false },
         )
     }
 
@@ -906,6 +927,151 @@ private fun DupDialog(
                     TextButton(onClick = onDismiss) { Text("关闭") }
                 }
             }
+        }
+    }
+}
+
+// ------------------------------------------------------------------ 分享
+
+/**
+ * 分享面板：先挑一个格式，再点「分享」调起系统分享面板。
+ *
+ * 为什么不点一下就直接分享：导出是有副作用的动作（会生成文件、会跳出应用），
+ * 而「发到群里」这件事又很难撤回，所以中间加一步让用户看清楚要发哪个格式。
+ */
+@Composable
+private fun ShareDialog(repo: Repository, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    var kind by remember { mutableStateOf(Sharer.Kind.TXT) }
+    val room = remember { repo.room() }
+    val title = if (room.isBlank()) "电费记账本" else "电费记账本 · $room 室"
+    val recordCount = remember { repo.records().size }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.surface) {
+            Column(Modifier.padding(20.dp).heightIn(max = 560.dp)) {
+                Text(
+                    "分享账本",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "选一个格式，点「分享」会弹出系统面板，再挑微信、QQ 或别的应用发出去。",
+                    fontSize = 12.sp,
+                    lineHeight = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(14.dp))
+
+                Column(
+                    Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
+                ) {
+                    Sharer.Kind.entries.forEach { k ->
+                        FormatOption(
+                            name = k.label,
+                            desc = when (k) {
+                                Sharer.Kind.TXT -> "一段排好版文字，微信聊天里能直接看（推荐）"
+                                Sharer.Kind.CSV -> "表格文件，对方用 Excel / WPS 打开"
+                                Sharer.Kind.JSON -> "完整账本备份，用于在电脑版「导入账本」恢复"
+                            },
+                            selected = kind == k,
+                            onClick = { kind = k },
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
+
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "当前账本共 $recordCount 条记录" +
+                            (if (room.isBlank()) "" else "，房间 $room") + "。\n" +
+                            "文件只在你点「分享」时生成，发出去之后能不能撤回由对方那个应用决定。",
+                        fontSize = 11.sp,
+                        lineHeight = 17.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                Spacer(Modifier.height(14.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text("取消") }
+                    Spacer(Modifier.width(4.dp))
+                    Button(
+                        onClick = {
+                            val name = Exporter.shareFileName(repo, kind.ext)
+                            val body = when (kind) {
+                                Sharer.Kind.TXT -> Exporter.buildTxt(repo)
+                                Sharer.Kind.CSV -> Exporter.buildCsv(repo)
+                                Sharer.Kind.JSON -> repo.exportJson()
+                            }
+                            val ok = Sharer.shareText(
+                                context = context,
+                                fileName = name,
+                                content = body,
+                                kind = kind,
+                                title = title,
+                                // CSV 要带 BOM，Excel / WPS 打开才不乱码
+                                withBom = kind == Sharer.Kind.CSV,
+                            )
+                            // 分享面板弹出来了就关掉自己的弹窗，免得两层叠着
+                            if (ok) onDismiss()
+                        },
+                        modifier = Modifier.height(38.dp),
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
+                    ) {
+                        Text("分享", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FormatOption(
+    name: String,
+    desc: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(
+                if (selected) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                },
+                RoundedCornerShape(12.dp),
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = MaterialTheme.colorScheme.primary,
+            ),
+        )
+        Spacer(Modifier.width(6.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                name,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.height(1.dp))
+            Text(
+                desc,
+                fontSize = 11.sp,
+                lineHeight = 15.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

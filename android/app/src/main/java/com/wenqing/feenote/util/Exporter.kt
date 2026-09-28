@@ -15,6 +15,19 @@ object Exporter {
         return "电费记账_${room}_$stamp.$ext"
     }
 
+    /**
+     * 分享用的文件名。
+     *
+     * 与 [fileName] 分开，是因为分享出去的文件名会**原样显示在微信 / QQ 的聊天里**，
+     * 冒号、斜杠这类字符在部分接收端会被替换或截断，所以这里只留汉字、数字、
+     * 字母、下划线和短横线（房间号里若混进别的字符也一并过滤掉）。
+     */
+    fun shareFileName(repo: Repository, ext: String): String {
+        val room = repo.room().filter { it.isLetterOrDigit() || it == '_' || it == '-' }
+        val stamp = Dates.now().replace("-", "").replace(":", "").replace(" ", "").take(12)
+        return if (room.isBlank()) "电费记账_$stamp.$ext" else "电费记账_${room}_$stamp.$ext"
+    }
+
     /** 文本报告 */
     fun buildTxt(repo: Repository): String {
         val sb = StringBuilder()
