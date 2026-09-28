@@ -14,7 +14,7 @@ Windows + Python 标准库（Tkinter）写的，**零第三方依赖** —— �
 
 ### 拿到别人打包好的 exe
 
-直接去本仓库的 **Releases** 页面下载最新版 `feenote-desktop-v1.5.exe`，
+直接去本仓库的 **Releases** 页面下载最新版 `feenote-desktop-v1.7.exe`，
 双击运行即可（Windows 10 / 11，64 位）。下载后想改名成「电费记账本.exe」随便改，不影响运行。
 首次打开如果 Windows 弹「未知发布者」，
 点「更多信息」→「仍要运行」就行 —— 这是没有代码签名的正常提示。

@@ -12,8 +12,8 @@ android {
         applicationId = "com.wenqing.feenote"
         minSdk = 26
         targetSdk = 37
-        versionCode = 7
-        versionName = "1.6"
+        versionCode = 8
+        versionName = "1.7"
     }
 
     buildTypes {
