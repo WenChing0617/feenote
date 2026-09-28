@@ -47,6 +47,7 @@ import com.wenqing.feenote.data.Record
 import com.wenqing.feenote.data.Repository
 import com.wenqing.feenote.ui.theme.memberColor
 import com.wenqing.feenote.util.Dates
+import com.wenqing.feenote.util.RecordSearch
 import com.wenqing.feenote.util.money
 import com.wenqing.feenote.util.money2
 
@@ -55,6 +56,7 @@ import com.wenqing.feenote.util.money2
 fun StatsScreen(
     repo: Repository,
     dataVersion: Int,
+    onChanged: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val totals = remember(dataVersion) { repo.totals() }
@@ -134,6 +136,7 @@ fun StatsScreen(
             member = name,
             dataVersion = dataVersion,
             onDismiss = { detailMember = null },
+            onChanged = onChanged,
         )
     }
 }
@@ -219,6 +222,10 @@ private fun MemberStatCard(item: MemberTotal, grand: Double, onClick: () -> Unit
  *
  * 列表顺序直接用 [Repository.recordsOf] 给的（日期倒序）——
  * 也就是**最新的在最上面**，跟导出的 TXT / CSV 保持同一个顺序。
+ *
+ * 点任意一行进编辑 —— 编辑弹窗里同时带「删除」，删掉是移入回收站、之后能恢复。
+ * 顶部搜索框按 [RecordSearch] 的规则过滤，但**不影响上面的累计小计**：
+ * 小计始终是这个人的总账，搜索只收窄下面的列表。
  */
 @Composable
 private fun MemberDetailDialog(
@@ -226,6 +233,7 @@ private fun MemberDetailDialog(
     member: String,
     dataVersion: Int,
     onDismiss: () -> Unit,
+    onChanged: () -> Unit,
 ) {
     val list = remember(dataVersion, member) { repo.recordsOf(member) }
     val total = remember(dataVersion, member) { repo.totalOf(member) }
@@ -233,6 +241,13 @@ private fun MemberDetailDialog(
     val color = memberColor(orderNo)
     val grand = remember(dataVersion) { repo.grandTotal() }
     val maxHeight = (LocalConfiguration.current.screenHeightDp * 0.85f).dp
+
+    var query by remember { mutableStateOf("") }
+    var editing by remember { mutableStateOf<Record?>(null) }
+
+    // 搜出来的子集。只有 list 或 query 变了才重算，不必每次重组都扫一遍
+    val shown = remember(list, query) { RecordSearch.filter(list, query) }
+    val searching = query.isNotBlank()
 
     // 期初和实际充值分开统计，跟统计页的口径对齐
     val initialRows = list.filter { it.initial }
@@ -313,25 +328,49 @@ private fun MemberDetailDialog(
                     )
                 }
 
+                // ---------------- 固定区（三）：搜索
+                Spacer(Modifier.height(10.dp))
+                SearchField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = "搜备注 / 方式 / 日期 / 金额",
+                )
+
                 // ---------------- 可滚动区：明细
                 Spacer(Modifier.height(10.dp))
-                if (list.isEmpty()) {
-                    Text(
+                when {
+                    list.isEmpty() -> Text(
                         "还没有记录",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 20.dp),
                     )
-                } else {
-                    Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
+
+                    // 搜崩了要明确说「是没匹配上」，不能跟「一条都没有」混为一谈
+                    shown.isEmpty() -> Text(
+                        "没有匹配「$query」的记录",
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 20.dp),
+                    )
+
+                    else -> Column(
+                        Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                    ) {
                         Text(
-                            text = "从新到旧（最近的在最上面）",
+                            // 搜索时把命中条数和金额合计说清楚，不然不知道筛掉了多少
+                            text = if (searching) {
+                                "命中 ${shown.size} 笔 · 合计 ${money(shown.sumOf { it.amount })}"
+                            } else {
+                                "从新到旧（最近的在最上面）"
+                            },
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 6.dp),
                         )
-                        list.forEach { r ->
-                            DetailRow(r = r, color = color)
+                        shown.forEach { r ->
+                            DetailRow(r = r, color = color, onClick = { editing = r })
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme.surfaceVariant,
                                 thickness = 1.dp,
@@ -342,7 +381,11 @@ private fun MemberDetailDialog(
 
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    text = "这里只统计当前账本里的记录，回收站里的不算。",
+                    text = if (searching) {
+                        "点任意一条可以改金额、日期、备注，也能删掉（删了进回收站，可以恢复）。"
+                    } else {
+                        "点任意一条可以编辑或删除。这里只统计当前账本里的记录，回收站里的不算。"
+                    },
                     fontSize = 11.sp,
                     lineHeight = 16.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -350,13 +393,29 @@ private fun MemberDetailDialog(
             }
         }
     }
+
+    // 编辑 / 删除。保存或删除后 onChanged() 会让外层 dataVersion+1，
+    // 于是上面那些 remember(dataVersion, ...) 重新查库 —— 列表和小计一起刷新。
+    editing?.let { rec ->
+        RecordEditorDialog(
+            repo = repo,
+            original = rec,
+            onDismiss = { editing = null },
+            onSaved = {
+                editing = null
+                onChanged()
+            },
+        )
+    }
 }
 
 @Composable
-private fun DetailRow(r: Record, color: Color) {
+private fun DetailRow(r: Record, color: Color, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
+            // clickable 放在 padding 前面，让整行的内边距也算点击区，手指更好点
+            .clickable(onClick = onClick)
             .padding(vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -401,6 +460,13 @@ private fun DetailRow(r: Record, color: Color) {
             fontSize = 15.sp,
             fontWeight = FontWeight.SemiBold,
             color = color,
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            // 给个可点的暗示，不然用户不知道这行能按
+            text = "›",
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

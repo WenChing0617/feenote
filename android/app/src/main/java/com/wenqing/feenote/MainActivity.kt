@@ -144,7 +144,7 @@ private fun AppRoot(repo: Repository) {
         val pageModifier = androidx.compose.ui.Modifier.padding(inner)
         when (tab) {
             0 -> RecordListScreen(repo, dataVersion, onChanged, pageModifier)
-            1 -> StatsScreen(repo, dataVersion, pageModifier)
+            1 -> StatsScreen(repo, dataVersion, onChanged, pageModifier)
             else -> SettingsScreen(repo, dataVersion, onChanged, pageModifier)
         }
     }

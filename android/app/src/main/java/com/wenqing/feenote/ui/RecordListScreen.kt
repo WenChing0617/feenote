@@ -35,12 +35,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wenqing.feenote.data.Record
 import com.wenqing.feenote.data.Repository
 import com.wenqing.feenote.ui.theme.memberColor
 import com.wenqing.feenote.util.Dates
+import com.wenqing.feenote.util.RecordSearch
 import com.wenqing.feenote.util.money
 import com.wenqing.feenote.util.money2
 
@@ -64,8 +66,12 @@ fun RecordListScreen(
     var showEditor by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<Record?>(null) }
     var showOnboarding by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
 
-    val groups = remember(records) { records.groupBy { it.date } }
+    // 搜索只过滤下面的列表；顶部的总览（总额 / 笔数 / 日期范围）始终反映整个账本，
+    // 不然搜一半的时候总金额跟着变，会让人误以为账目少了。
+    val filtered = remember(records, query) { RecordSearch.filter(records, query) }
+    val groups = remember(filtered) { filtered.groupBy { it.date } }
 
     Box(modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
@@ -78,13 +84,26 @@ fun RecordListScreen(
                 else "${Dates.friendly(firstDate)} ~ ${Dates.friendly(lastDate)}",
             )
 
-            if (records.isEmpty()) {
-                EmptyState(
+            // 空账本不显示搜索框 —— 一条记录都没有，搜什么呢
+            if (records.isNotEmpty()) {
+                SearchField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = "搜成员 / 备注 / 方式 / 日期 / 金额",
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                )
+            }
+
+            when {
+                records.isEmpty() -> EmptyState(
                     hasMembers = members.isNotEmpty(),
                     onSetup = { showOnboarding = true },
                 )
-            } else {
-                LazyColumn(
+
+                // 有记录但没搜着，跟「一条都没有」要分开说
+                filtered.isEmpty() -> NoMatch(query)
+
+                else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 96.dp),
                 ) {
@@ -171,6 +190,19 @@ private fun EmptyState(hasMembers: Boolean, onSetup: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+/** 搜了但一条都没命中。跟「还没有记录」分开 —— 后者是空账本，前者只是没搜到 */
+@Composable
+private fun NoMatch(query: String) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = "没有匹配「$query」的记录\n换个词试试，或点搜索框里的 × 清空",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            lineHeight = 26.sp,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
