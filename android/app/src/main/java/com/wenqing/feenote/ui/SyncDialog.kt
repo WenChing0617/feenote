@@ -6,9 +6,9 @@ import android.net.NetworkCapabilities
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -122,194 +123,180 @@ fun SyncDialog(
         }.start()
     }
 
+    // 弹窗高度按屏幕算，别写死 —— 小屏手机上也别让内容溢出去
+    val maxHeight = (LocalConfiguration.current.screenHeightDp * 0.85f).dp
+
     Dialog(onDismissRequest = { if (!busy) onDismiss() }) {
         Surface(shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.surface) {
             Column(
                 Modifier
-                    .padding(20.dp)
-                    .heightIn(max = 600.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .padding(horizontal = 18.dp, vertical = 14.dp)
+                    .heightIn(max = maxHeight),
             ) {
-                Text(
-                    "电脑同步",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "电脑上打开桌面版 → 点顶栏「手机同步」→ 启动服务，\n" +
-                        "把那里的地址和 4 位配对码抄到这里。两台要连同一个 WiFi。",
-                    fontSize = 12.sp,
-                    lineHeight = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (!onWifi) {
-                    Spacer(Modifier.height(8.dp))
+                // ---------------------------------------------- 固定区（一）：标题
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "当前好像没连 WiFi —— 手机和电脑不在同一个网里是同步不了的。",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.error,
+                        "电脑同步",
+                        modifier = Modifier.weight(1f),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
+                    TextButton(
+                        enabled = !busy,
+                        onClick = onDismiss,
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                    ) { Text("关闭", fontSize = 13.sp) }
                 }
 
-                Spacer(Modifier.height(14.dp))
-                OutlinedTextField(
-                    value = host,
-                    onValueChange = { host = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    enabled = !busy,
-                    label = { Text("电脑地址") },
-                    placeholder = { Text("192.168.1.5") },
-                )
-                Spacer(Modifier.height(10.dp))
-                Row {
-                    OutlinedTextField(
-                        value = portText,
-                        onValueChange = { portText = it.filter { c -> c.isDigit() } },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        enabled = !busy,
-                        label = { Text("端口") },
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    OutlinedTextField(
-                        value = pair,
-                        onValueChange = { pair = it.filter { c -> c.isDigit() }.take(4) },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        enabled = !busy,
-                        label = { Text("配对码") },
-                        placeholder = { Text("4 位") },
-                    )
-                }
+                // ---------------------------------------------- 固定区（二）：结果 / 进度
+                // 这一块**不跟内容一起滚**，紧贴标题下方 —— 点完按钮抬眼看这里就行，
+                // 不用把窗口滑到底去找「同步完成」那行字。
+                StatusStrip(busy = busy, result = result, resultOk = resultOk)
 
-                Spacer(Modifier.height(10.dp))
-                OutlinedButton(
-                    enabled = !busy,
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        // 「测试连接」只探活，不动任何数据 —— 先确认地址对了再同步
-                        run {
-                            val info = LanSync.ping(currentTarget())
-                            Step.Say(
-                                "连上了：${info.app} v${info.version}\n" +
-                                    "电脑上房间「${info.room.ifBlank { "未设置" }}」，" +
-                                    "记录 ${info.records} 条、回收站 ${info.trash} 条、" +
-                                    "成员 ${info.members} 人。"
-                            )
-                        }
-                    },
-                ) { Text("测试连接") }
-
-                Spacer(Modifier.height(16.dp))
-                Box(
+                // ---------------------------------------------- 可滚动区：表单与按钮
+                Column(
                     Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(MaterialTheme.colorScheme.outlineVariant)
-                )
-                Spacer(Modifier.height(14.dp))
-
-                // ---------------- 方向一：电脑 → 手机 ----------------
-                DirectionBlock(
-                    title = "同步到手机",
-                    subtitle = "把电脑上有、手机上没有的取回来。\n只读电脑，不会改动电脑上的账。",
-                    buttonText = "同步到手机",
-                    enabled = !busy,
-                    onClick = {
-                        run {
-                            val target = currentTarget()
-                            val remote = LanSync.pull(target)
-                            val plan = repo.planSync(remote)
-                            if (plan.pullDup.isEmpty()) {
-                                Step.Say(applyPull(repo, remote, plan, skip = true))
-                            } else {
-                                Step.Need(
-                                    PendingSync(toPhone = true, plan = plan, remote = remote),
-                                    "电脑上有 ${plan.pullDup.size} 条和手机疑似是同一笔，\n" +
-                                        "先确认一下再取回。",
-                                )
-                            }
-                        }
-                    },
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                // ---------------- 方向二：手机 → 电脑 ----------------
-                DirectionBlock(
-                    title = "同步到电脑",
-                    subtitle = "把手机上有、电脑上没有的推过去。\n电脑按 uid 合并，不会覆盖它原有的记录。",
-                    buttonText = "同步到电脑",
-                    enabled = !busy,
-                    onClick = {
-                        run {
-                            val target = currentTarget()
-                            // 先读一遍电脑那份（只读），才知道有哪些是疑似重复
-                            val remote = LanSync.pull(target)
-                            val plan = repo.planSync(remote)
-                            if (plan.pushDup.isEmpty()) {
-                                Step.Say(applyPush(repo, target, plan, skip = true))
-                            } else {
-                                Step.Need(
-                                    PendingSync(toPhone = false, plan = plan, remote = remote),
-                                    "手机上有 ${plan.pushDup.size} 条和电脑疑似是同一笔，\n" +
-                                        "先确认一下再推送。",
-                                )
-                            }
-                        }
-                    },
-                )
-
-                if (busy) {
-                    Spacer(Modifier.height(14.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                        Spacer(Modifier.width(8.dp))
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    Text(
+                        "电脑上打开桌面版 → 顶栏「手机同步」→ 启动服务，\n" +
+                            "把地址和 4 位配对码抄过来。两台要连同一个 WiFi。",
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (!onWifi) {
+                        Spacer(Modifier.height(6.dp))
                         Text(
-                            "正在跟电脑说话…",
-                            fontSize = 13.sp,
+                            "当前好像没连 WiFi —— 手机和电脑不在同一个网里是同步不了的。",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = host,
+                        onValueChange = { host = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        enabled = !busy,
+                        label = { Text("电脑地址", fontSize = 13.sp) },
+                        placeholder = { Text("192.168.1.5", fontSize = 13.sp) },
+                        textStyle = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Row {
+                        OutlinedTextField(
+                            value = portText,
+                            onValueChange = { portText = it.filter { c -> c.isDigit() } },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            enabled = !busy,
+                            label = { Text("端口", fontSize = 13.sp) },
+                            textStyle = MaterialTheme.typography.bodyMedium,
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        OutlinedTextField(
+                            value = pair,
+                            onValueChange = { pair = it.filter { c -> c.isDigit() }.take(4) },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            enabled = !busy,
+                            label = { Text("配对码", fontSize = 13.sp) },
+                            placeholder = { Text("4 位", fontSize = 13.sp) },
+                            textStyle = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "先确认地址对不对",
+                            modifier = Modifier.weight(1f),
+                            fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        OutlinedButton(
+                            enabled = !busy,
+                            modifier = Modifier.height(34.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+                            onClick = {
+                                // 「测试连接」只探活，不动任何数据 —— 先确认地址对了再同步
+                                run {
+                                    val info = LanSync.ping(currentTarget())
+                                    Step.Say(
+                                        "连上了：${info.app} v${info.version}\n" +
+                                            "电脑上房间「${info.room.ifBlank { "未设置" }}」，" +
+                                            "记录 ${info.records} 条、回收站 ${info.trash} 条、" +
+                                            "成员 ${info.members} 人。"
+                                    )
+                                }
+                            },
+                        ) { Text("测试连接", fontSize = 13.sp) }
                     }
-                }
 
-                result?.let { text ->
-                    Spacer(Modifier.height(14.dp))
-                    Column(
+                    Spacer(Modifier.height(12.dp))
+                    Box(
                         Modifier
                             .fillMaxWidth()
-                            .background(
-                                if (resultOk) {
-                                    MaterialTheme.colorScheme.primaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.errorContainer
-                                },
-                                RoundedCornerShape(12.dp),
-                            )
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                    ) {
-                        Text(
-                            text,
-                            fontSize = 13.sp,
-                            lineHeight = 19.sp,
-                            color = if (resultOk) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onErrorContainer
-                            },
-                        )
-                    }
-                }
+                            .height(1.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant)
+                    )
+                    Spacer(Modifier.height(10.dp))
 
-                Spacer(Modifier.height(14.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    TextButton(onClick = { if (!busy) onDismiss() }) { Text("关闭") }
+                    // ---------------- 方向一：电脑 → 手机 ----------------
+                    DirectionBlock(
+                        title = "同步到手机",
+                        subtitle = "把电脑上有、手机上没有的取回来（只读电脑，不动电脑的账）",
+                        buttonText = "同步到手机",
+                        enabled = !busy,
+                        onClick = {
+                            run {
+                                val target = currentTarget()
+                                val remote = LanSync.pull(target)
+                                val plan = repo.planSync(remote)
+                                if (plan.pullDup.isEmpty()) {
+                                    Step.Say(applyPull(repo, remote, plan, skip = true))
+                                } else {
+                                    Step.Need(
+                                        PendingSync(toPhone = true, plan = plan, remote = remote),
+                                        "电脑上有 ${plan.pullDup.size} 条和手机疑似是同一笔，\n" +
+                                            "先确认一下再取回。",
+                                    )
+                                }
+                            }
+                        },
+                    )
+
+                    Spacer(Modifier.height(10.dp))
+
+                    // ---------------- 方向二：手机 → 电脑 ----------------
+                    DirectionBlock(
+                        title = "同步到电脑",
+                        subtitle = "把手机上有、电脑上没有的推过去（电脑按 uid 合并）",
+                        buttonText = "同步到电脑",
+                        enabled = !busy,
+                        onClick = {
+                            run {
+                                val target = currentTarget()
+                                // 先读一遍电脑那份（只读），才知道有哪些是疑似重复
+                                val remote = LanSync.pull(target)
+                                val plan = repo.planSync(remote)
+                                if (plan.pushDup.isEmpty()) {
+                                    Step.Say(applyPush(repo, target, plan, skip = true))
+                                } else {
+                                    Step.Need(
+                                        PendingSync(toPhone = false, plan = plan, remote = remote),
+                                        "手机上有 ${plan.pushDup.size} 条和电脑疑似是同一笔，\n" +
+                                            "先确认一下再推送。",
+                                    )
+                                }
+                            }
+                        },
+                    )
                 }
             }
         }
@@ -340,8 +327,53 @@ fun SyncDialog(
     }
 }
 
+// ---------------------------------------------------------------------- 状态条
+
+/**
+ * 结果 / 进度提示条。**固定贴在标题下面，不参与滚动**。
+ *
+ * 原来它排在整列的最末尾，点完按钮得把窗口滑到底才看得见 ——
+ * 现在抬眼就在，同步完多少条、有没有跳过重复，一眼能看全。
+ */
+@Composable
+private fun StatusStrip(busy: Boolean, result: String?, resultOk: Boolean) {
+    if (!busy && result == null) return
+
+    Spacer(Modifier.height(8.dp))
+    val bg = when {
+        busy -> MaterialTheme.colorScheme.surfaceVariant
+        resultOk -> MaterialTheme.colorScheme.primaryContainer
+        else -> MaterialTheme.colorScheme.errorContainer
+    }
+    val fg = when {
+        busy -> MaterialTheme.colorScheme.onSurfaceVariant
+        resultOk -> MaterialTheme.colorScheme.onPrimaryContainer
+        else -> MaterialTheme.colorScheme.onErrorContainer
+    }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(bg, RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 9.dp),
+    ) {
+        if (busy) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                Spacer(Modifier.width(8.dp))
+                Text("正在跟电脑说话…", fontSize = 13.sp, color = fg)
+            }
+        } else if (result != null) {
+            Text(result, fontSize = 13.sp, lineHeight = 19.sp, color = fg)
+        }
+    }
+}
+
 // ---------------------------------------------------------------------- 方向块
 
+/**
+ * 一个同步方向。文字在左、小按钮在右 —— 竖着堆「标题 + 两行说明 + 一个通栏大按钮」
+ * 太占地方，两个方向叠起来就把窗口撑得要滚动。
+ */
 @Composable
 private fun DirectionBlock(
     title: String,
@@ -350,26 +382,32 @@ private fun DirectionBlock(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth()) {
-        Text(
-            title,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            subtitle,
-            fontSize = 12.sp,
-            lineHeight = 17.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.height(8.dp))
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.height(1.dp))
+            Text(
+                subtitle,
+                fontSize = 11.sp,
+                lineHeight = 15.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.width(10.dp))
         Button(
             enabled = enabled,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.height(36.dp),
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
             onClick = onClick,
-        ) { Text(buttonText, fontWeight = FontWeight.SemiBold) }
+        ) { Text(buttonText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold) }
     }
 }
 
