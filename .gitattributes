@@ -1,0 +1,20 @@
+# 统一换行符，避免 Windows 上 clone 出来的 gradlew 带 CRLF 在 Linux/macOS 跑不起来
+* text=auto eol=lf
+
+# Windows 批处理的换行是 CRLF，这几种不能改
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制文件不做任何转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.jar binary
+*.apk binary
+*.ttf binary
+
+# 图表 / 报表类文件在 diff 里没有意义
+*.xlsx binary
+*.xls binary
+*.docx binary

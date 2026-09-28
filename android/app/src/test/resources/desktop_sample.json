@@ -1,0 +1,423 @@
+{
+  "app": "电费记账本",
+  "version": "1.4",
+  "room": "302",
+  "members": [
+    "甲",
+    "乙",
+    "丙",
+    "丁",
+    "戊"
+  ],
+  "memberIds": {
+    "甲": 1,
+    "乙": 2,
+    "丙": 3,
+    "丁": 4,
+    "戊": 5
+  },
+  "records": [
+    {
+      "id": "ce3f1890bccc",
+      "date": "2025-09-09",
+      "member": "甲",
+      "amount": 30.0,
+      "method": "校园卡",
+      "note": "期初首笔（原始表首行，无 * 标记）",
+      "createdAt": 1767000000001,
+      "initial": true
+    },
+    {
+      "id": "b2a25b5d39b9",
+      "date": "2025-09-09",
+      "member": "乙",
+      "amount": 40.0,
+      "method": "校园卡",
+      "note": "期初首笔（原始表首行，无 * 标记）",
+      "createdAt": 1767000000002,
+      "initial": true
+    },
+    {
+      "id": "e51fed53ff71",
+      "date": "2025-09-09",
+      "member": "丙",
+      "amount": 50.0,
+      "method": "校园卡",
+      "note": "期初首笔（原始表首行，无 * 标记）",
+      "createdAt": 1767000000003,
+      "initial": true
+    },
+    {
+      "id": "483af7dd49e5",
+      "date": "2025-09-09",
+      "member": "丁",
+      "amount": 60.0,
+      "method": "校园卡",
+      "note": "期初首笔（原始表首行，无 * 标记）",
+      "createdAt": 1767000000004,
+      "initial": true
+    },
+    {
+      "id": "202885055116",
+      "date": "2025-09-09",
+      "member": "戊",
+      "amount": 70.0,
+      "method": "校园卡",
+      "note": "期初首笔（原始表首行，无 * 标记）",
+      "createdAt": 1767000000005,
+      "initial": true
+    },
+    {
+      "id": "6ba373cbd83d",
+      "date": "2025-09-19",
+      "member": "丙",
+      "amount": 30.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000006,
+      "initial": false
+    },
+    {
+      "id": "10953034573e",
+      "date": "2025-09-19",
+      "member": "戊",
+      "amount": 40.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000007,
+      "initial": false
+    },
+    {
+      "id": "2428dedcfc3f",
+      "date": "2025-10-02",
+      "member": "甲",
+      "amount": 50.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000008,
+      "initial": false
+    },
+    {
+      "id": "4008d453d080",
+      "date": "2025-10-07",
+      "member": "乙",
+      "amount": 60.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000009,
+      "initial": false
+    },
+    {
+      "id": "c2d0d97b1c19",
+      "date": "2025-10-27",
+      "member": "丙",
+      "amount": 70.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000010,
+      "initial": false
+    },
+    {
+      "id": "47bc9654d787",
+      "date": "2025-11-14",
+      "member": "甲",
+      "amount": 30.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000011,
+      "initial": false
+    },
+    {
+      "id": "47fff96cc15e",
+      "date": "2025-12-02",
+      "member": "丙",
+      "amount": 40.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000012,
+      "initial": false
+    },
+    {
+      "id": "230f853853ef",
+      "date": "2025-12-20",
+      "member": "乙",
+      "amount": 50.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000013,
+      "initial": false
+    },
+    {
+      "id": "650c4a29b984",
+      "date": "2025-12-20",
+      "member": "丁",
+      "amount": 60.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000014,
+      "initial": false
+    },
+    {
+      "id": "1cd8e61c0ab1",
+      "date": "2026-01-08",
+      "member": "戊",
+      "amount": 70.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000015,
+      "initial": false
+    },
+    {
+      "id": "8e5288fcff56",
+      "date": "2026-04-09",
+      "member": "丙",
+      "amount": 30.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000016,
+      "initial": false
+    },
+    {
+      "id": "c9f99c2c1f10",
+      "date": "2026-04-09",
+      "member": "丁",
+      "amount": 40.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000017,
+      "initial": false
+    },
+    {
+      "id": "a6169d7b4513",
+      "date": "2026-05-06",
+      "member": "戊",
+      "amount": 50.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000018,
+      "initial": false
+    },
+    {
+      "id": "90582462297a",
+      "date": "2026-05-24",
+      "member": "乙",
+      "amount": 60.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000019,
+      "initial": false
+    },
+    {
+      "id": "d8be81fea149",
+      "date": "2026-06-04",
+      "member": "丙",
+      "amount": 70.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000020,
+      "initial": false
+    },
+    {
+      "id": "29fed0ba9b0f",
+      "date": "2026-06-10",
+      "member": "丙",
+      "amount": 30.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000021,
+      "initial": false
+    },
+    {
+      "id": "30b4238f6171",
+      "date": "2026-06-16",
+      "member": "乙",
+      "amount": 40.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000022,
+      "initial": false
+    },
+    {
+      "id": "b8e46f106833",
+      "date": "2026-06-20",
+      "member": "甲",
+      "amount": 50.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000023,
+      "initial": false
+    },
+    {
+      "id": "c9c036e51c99",
+      "date": "2026-06-20",
+      "member": "丁",
+      "amount": 60.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000024,
+      "initial": false
+    },
+    {
+      "id": "8bf758bdc21b",
+      "date": "2026-07-07",
+      "member": "甲",
+      "amount": 70.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000025,
+      "initial": false
+    },
+    {
+      "id": "4f8378c8ea1e",
+      "date": "2026-07-11",
+      "member": "乙",
+      "amount": 30.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000026,
+      "initial": false
+    },
+    {
+      "id": "a70b7818d8be",
+      "date": "2026-07-11",
+      "member": "戊",
+      "amount": 40.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000027,
+      "initial": false
+    },
+    {
+      "id": "a290a6d49c48",
+      "date": "2026-07-21",
+      "member": "甲",
+      "amount": 50.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000028,
+      "initial": false
+    },
+    {
+      "id": "4d6a7f6e3e4c",
+      "date": "2026-07-28",
+      "member": "乙",
+      "amount": 60.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000029,
+      "initial": false
+    },
+    {
+      "id": "f678bd6c8072",
+      "date": "2026-08-01",
+      "member": "乙",
+      "amount": 70.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000030,
+      "initial": false
+    },
+    {
+      "id": "6af643f7985c",
+      "date": "2026-08-06",
+      "member": "甲",
+      "amount": 30.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000031,
+      "initial": false
+    },
+    {
+      "id": "70f7b8300f1d",
+      "date": "2026-08-14",
+      "member": "戊",
+      "amount": 40.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000032,
+      "initial": false
+    },
+    {
+      "id": "3830e39bc8be",
+      "date": "2026-08-19",
+      "member": "戊",
+      "amount": 50.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000033,
+      "initial": false
+    },
+    {
+      "id": "e82f91948d11",
+      "date": "2026-08-24",
+      "member": "甲",
+      "amount": 60.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000034,
+      "initial": false
+    },
+    {
+      "id": "e7343b669a15",
+      "date": "2026-08-28",
+      "member": "乙",
+      "amount": 70.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000035,
+      "initial": false
+    },
+    {
+      "id": "454724d4505b",
+      "date": "2026-08-28",
+      "member": "丙",
+      "amount": 30.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000036,
+      "initial": false
+    },
+    {
+      "id": "fde9cfa371ba",
+      "date": "2026-09-13",
+      "member": "戊",
+      "amount": 40.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000037,
+      "initial": false
+    },
+    {
+      "id": "5b17da748989",
+      "date": "2026-09-18",
+      "member": "丙",
+      "amount": 50.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1767000000038,
+      "initial": false
+    },
+    {
+      "id": "a49ca6adaa20",
+      "date": "2026-09-24",
+      "member": "甲",
+      "amount": 60.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1790179411748,
+      "initial": false
+    },
+    {
+      "id": "7e02804a9407",
+      "date": "2026-09-24",
+      "member": "丁",
+      "amount": 70.0,
+      "method": "校园卡",
+      "note": "",
+      "createdAt": 1790222268826,
+      "initial": false
+    }
+  ],
+  "deleted": [],
+  "savedAt": "2026-09-24 12:17:55"
+}

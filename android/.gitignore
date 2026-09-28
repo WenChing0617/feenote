@@ -1,0 +1,22 @@
+# ---------- Android / Gradle 构建产物 ----------
+.gradle/
+build/
+app/build/
+.kotlin/
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# 本机 SDK 路径，每台机器都不一样，不该提交
+local.properties
+
+# ---------- IDE ----------
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ---------- 测试跑出来的东西 ----------
+/app/build/test-results/

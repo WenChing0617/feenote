@@ -1,0 +1,35 @@
+[versions]
+agp = "9.2.0"
+# 必须与 AGP 9.2.0 内建的 Kotlin 版本保持一致：
+# gradle-9.2.0.module 中声明 kotlin-gradle-plugin = 2.2.10。
+# Compose 编译器插件版本与 Kotlin 版本不一致会直接被编译器拦下。
+kotlin = "2.2.10"
+coreKtx = "1.17.0"
+lifecycleRuntimeKtx = "2.9.4"
+activityCompose = "1.11.0"
+composeBom = "2025.09.00"
+# 单元测试：JsonCodec 的互通契约测试用。
+# org.json 在 android.jar 里是空壳（调用会抛异常），所以要显式引入真实现。
+junit = "4.13.2"
+orgJson = "20250107"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+org-json = { group = "org.json", name = "json", version.ref = "orgJson" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+# AGP 9.x 内建 Kotlin 支持，不再声明 kotlin-android 插件；
+# 仅保留 Compose 编译器插件（Volta 之后 Kotlin 编译器随之而来）。
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

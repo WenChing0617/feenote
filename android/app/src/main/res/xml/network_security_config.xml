@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  为什么整体放开明文 HTTP：
+  电脑那头的地址是用户在手机上现填的局域网 IP（192.168.x.x / 10.x.x.x …），
+  network-security-config 只能按「域名」放行，没法写网段，所以这里统一放开。
+  风险可控的理由：应用只在「设置 → 电脑同步」里发起请求，目标就是用户自己
+  手里那台电脑，且请求必须带 4 位配对码，数据不出局域网、不经过任何服务器。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

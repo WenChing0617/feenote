@@ -1,0 +1,28 @@
+# ---------- 桌面版运行时产物 ----------
+# 打包时 PyInstaller 拉出来的虚拟环境（几百 MB，不进仓库）
+.build-venv/
+
+# 打包中间产物
+build/
+dist/
+*.spec.bak
+
+# 你的账本数据 —— 千万不要提交
+电费记账数据.json
+电费记账数据.json.tmp
+数据备份/
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# ---------- 编辑器 / 系统 ----------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.lnk
+desktop.ini

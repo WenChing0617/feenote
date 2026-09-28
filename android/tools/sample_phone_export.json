@@ -1,0 +1,72 @@
+{
+  "app": "电费记账本",
+  "deleted": [{
+    "date": "2026-09-30",
+    "note": "手机删掉的",
+    "createdAt": 1790000000001,
+    "amount": 20,
+    "method": "校园卡",
+    "initial": false,
+    "member": "丁",
+    "id": "deadbeef0001"
+  }],
+  "records": [
+    {
+      "date": "2025-09-09",
+      "note": "期初首笔（原始表首行，无 * 标记）",
+      "createdAt": 1767000000001,
+      "amount": 350,
+      "method": "校园卡",
+      "initial": true,
+      "member": "甲",
+      "id": "ce3f1890bccc"
+    },
+    {
+      "date": "2025-09-09",
+      "note": "期初首笔（原始表首行，无 * 标记）",
+      "createdAt": 1767000000002,
+      "amount": 350,
+      "method": "校园卡",
+      "initial": true,
+      "member": "乙",
+      "id": "b2a25b5d39b9"
+    },
+    {
+      "date": "2026-10-05",
+      "note": "手机记的",
+      "createdAt": 1791000000001,
+      "amount": 60,
+      "method": "校园卡",
+      "initial": false,
+      "member": "戊",
+      "id": "111122223333"
+    },
+    {
+      "date": "2026-10-06",
+      "note": "手机记的",
+      "createdAt": 1791000000002,
+      "amount": 40,
+      "method": "微信",
+      "initial": false,
+      "member": "丙",
+      "id": "444455556666"
+    }
+  ],
+  "members": [
+    "甲",
+    "乙",
+    "丙",
+    "丁",
+    "戊"
+  ],
+  "savedAt": "2026-09-28 11:30:00",
+  "version": "1.4",
+  "room": "302",
+  "memberIds": {
+    "丁": 4,
+    "戊": 5,
+    "乙": 2,
+    "丙": 3,
+    "甲": 1
+  }
+}

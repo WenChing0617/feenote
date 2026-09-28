@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 应用图标底色（清透天蓝）。adaptive icon 实际用的是 drawable/ic_launcher_background 的渐变 -->
+    <color name="ic_launcher_background">#3A87F0</color>
+</resources>

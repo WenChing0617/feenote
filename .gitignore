@@ -1,0 +1,8 @@
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# 临时脚本与草稿
+tmp/
+*.log
